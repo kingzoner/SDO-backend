@@ -10,6 +10,8 @@ services:
       - db
     ports:
         - "8000:8000"
+    env_file:
+      - .env
     networks:
       - app-network
 
@@ -24,6 +26,20 @@ services:
       - "5050:5432"
     volumes:
       - ./app/init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8000
+    container_name: frontend_container
+    depends_on:
+      - app
+    ports:
+      - "8081:80"
     networks:
       - app-network
 

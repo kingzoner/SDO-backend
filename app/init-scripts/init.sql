@@ -103,9 +103,9 @@ VALUES ('211-365', 1),
 -- Добавление пользователей
 INSERT INTO "User" (username, password, "roleType", "studyGroup", form_education, first_name, last_name,
                     middle_name)
-VALUES ('teacher', 'teacher', 'teacher', 5, '', 'Иван',
+VALUES ('teacher', '$2b$12$Zjte0t1hy0QnGzpmnTwJde8XYqhiLo/cv6fivmzkjMemePpfgCVb6', 'teacher', 5, '', 'D~D?D?D?',
         'Калмыков', 'Денисович'),
-       ('student', 'student', 'student', 1, 'Платная',
+       ('student', '$2b$12$5ImiBdOUuTQUa.vd2ny77.C/0z680mp4NgYTNBz2FbifEJJjQGrii', 'student', 1, 'DYD?D??,D?D???',
         'Василий', 'Шубенок', 'Валерьевич');
 
 INSERT INTO "TeacherHasGroups" (teacher_id, group_id)
@@ -186,3 +186,5 @@ VALUES ('1 2 3', '0 2', 1),
 INSERT INTO "Solution" (code, "User_id", "Task_id")
 VALUES ('print(''Hello, World!'')', 1, 1),
        ('print(''Hello, World!'')', 1, 3);
+
+
