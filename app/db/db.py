@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, InstrumentedAttribute
 from sqlalchemy.dialects.postgresql import ENUM
 
-from app.config.config import init_config
+from app.config.settings import get_settings
 from app.schemas.auth import RegisterRequest
 from app.schemas.subject import SubjectInfo, LabStatus
 from app.schemas.teachers import TaskWithTestCasesSchema
@@ -19,8 +19,8 @@ for logger_name in ('sqlalchemy', 'sqlalchemy.engine', 'sqlalchemy.pool'):
     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
 
 # Database connection setup
-cfg = init_config()['database']
-DATABASE_URL = f"postgresql://{cfg['user']}:{cfg['password']}@{cfg['host']}:{cfg['port']}/{cfg['name']}"
+cfg = get_settings().database
+DATABASE_URL = f"postgresql://{cfg.user}:{cfg.password}@{cfg.host}:{cfg.port}/{cfg.name}"
 engine = create_engine(DATABASE_URL, echo=False)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)

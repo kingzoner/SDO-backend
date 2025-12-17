@@ -5,6 +5,7 @@ from app.db.group_methods import get_group_id
 from app.schemas.auth import RegisterRequest
 from app.schemas.subject import SubjectInfo
 from app.schemas.users import User as UserSchema
+from app.utils.security import hash_password, verify_password
 
 
 def get_groups_by_user_id(user_id: int) -> list[tuple[Any, Any]]:
@@ -27,6 +28,11 @@ def get_username_by_id(student_id: int) -> Union[str, None]:
         if user:
             return user.username
         return None
+
+
+def username_exists(username: str) -> bool:
+    with Session() as session:
+        return session.query(User.id).filter_by(username=username).first() is not None
 
 
 def get_users():
@@ -97,7 +103,7 @@ def add_user_test(username, password, role_type='student', study_group='', form_
                 last_name=last_name,
                 middle_name=middle_name,
                 username=username,
-                password=password,
+                password=hash_password(password),
                 roleType=role_type,
                 form_education=form_education,
                 Group_id=study_group
@@ -175,7 +181,7 @@ def add_user(register_data: RegisterRequest) -> Union[dict, str]:
         last_name=register_data.last_name,
         middle_name=middle_name,
         username=register_data.username,
-        password=register_data.password,
+        password=hash_password(register_data.password),
         roleType=role_type,
         form_education='Бюджет',
         studyGroup=group_id,
@@ -291,7 +297,7 @@ def validate_user(username: str, password: str) -> Union[dict, bool]:
     """
     with Session() as session:
         user = session.query(User).filter_by(username=username).first()
-        if user and user.password == password:
+        if user and (verify_password(password, user.password) or user.password == password):
             return {
                 "user_id": user.id,
                 "username": user.username,
@@ -299,4 +305,6 @@ def validate_user(username: str, password: str) -> Union[dict, bool]:
                 "studyGroup": user.studyGroup
             }
         return False
+
+
 
