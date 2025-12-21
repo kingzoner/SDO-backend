@@ -46,7 +46,8 @@ From the project root:
 ```powershell
 .\docker-up.cmd
 ```
-It prints the URLs and starts all services (backend + db + frontend).
+It starts all services (backend + db + frontend), prints the URLs, and opens the app in your browser.
+Use `.\docker-up.cmd -NoOpen` to skip opening the browser.
 
 ## Frontend (development)
 ```bash

@@ -24,3 +24,8 @@ prisma/.env.prisma.*
 
 # OS/editor
 .DS_Store
+
+# Local helper script output
+_compose_stdout.txt
+_compose_stderr.txt
+_docker_up_out.txt
