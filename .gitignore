@@ -29,3 +29,6 @@ prisma/.env.prisma.*
 _compose_stdout.txt
 _compose_stderr.txt
 _docker_up_out.txt
+
+# Local docs (keep out of git)
+comtoup.md
