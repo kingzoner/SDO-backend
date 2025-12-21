@@ -6,6 +6,7 @@ import type { TestResult } from '../api/types'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import Card from '../components/Card'
+import { useI18n } from '../i18n/I18nContext'
 import { getErrorMessage } from '../utils/error'
 
 const TaskDetailPage = () => {
@@ -15,8 +16,9 @@ const TaskDetailPage = () => {
   const testMutation = useTestSolution()
   const [file, setFile] = useState<File | null>(null)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
-   const [uploadError, setUploadError] = useState<string | null>(null)
-   const [testError, setTestError] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [testError, setTestError] = useState<string | null>(null)
+  const { t } = useI18n()
 
   const handleUpload = () => {
     if (!file || !taskId) return
@@ -44,7 +46,7 @@ const TaskDetailPage = () => {
           const maybeData = err?.response?.data
           if (maybeData && typeof maybeData === 'object') {
             setTestResult({
-              status: maybeData.status || 'Failed',
+              status: maybeData.status || t('status.failed'),
               formulas_output: maybeData.formulas_output,
               code_output: maybeData.code_output,
               execution_time: maybeData.execution_time,
@@ -62,23 +64,23 @@ const TaskDetailPage = () => {
   return (
     <div className="grid">
       <Card
-        title={data?.name || 'Task'}
-        subtitle={data?.description || 'Upload and test your latest solution'}
-        action={<span className="pill">// simple helper text: drop your .py file</span>}
+        title={data?.name || t('task.titleFallback')}
+        subtitle={data?.description || t('task.subtitleFallback')}
+        action={<span className="pill">{t('task.hintDrop')}</span>}
       >
-        {isLoading && <p className="muted">Loading task...</p>}
-        {error && <p className="error-text">{error.message || 'Failed to load task'}</p>}
+        {isLoading && <p className="muted">{t('task.loading')}</p>}
+        {error && <p className="error-text">{error.message || t('task.error')}</p>}
 
         <div className="split">
           <div className="glass input-panel">
-            <label className="input-label">Upload solution</label>
+            <label className="input-label">{t('task.uploadLabel')}</label>
             <input type="file" accept=".py,.txt" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
             <div className="row">
               <Button onClick={handleUpload} disabled={!file || uploadMutation.isPending}>
-                {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
+                {uploadMutation.isPending ? t('task.uploading') : t('task.upload')}
               </Button>
               <Button variant="ghost" onClick={handleTest} disabled={testMutation.isPending}>
-                {testMutation.isPending ? 'Running test...' : 'Test latest'}
+                {testMutation.isPending ? t('task.testing') : t('task.test')}
               </Button>
             </div>
             {uploadError && <p className="error-text">{uploadError}</p>}
@@ -87,7 +89,7 @@ const TaskDetailPage = () => {
               <div className="mini-card glass">
                 <div className="mini-card-top">
                   <Badge tone={testResult.status === 'Success' ? 'success' : 'warning'} label={testResult.status} />
-                  <span className="pill">runtime {testResult.execution_time ?? 0}s</span>
+                  <span className="pill">{t('task.runtime', { seconds: testResult.execution_time ?? 0 })}</span>
                 </div>
                 <p className="muted">{testResult.formulas_output || testResult.code_output}</p>
               </div>
@@ -95,8 +97,8 @@ const TaskDetailPage = () => {
           </div>
 
           <div className="glass input-panel">
-            <label className="input-label">Attempts</label>
-            {data?.solutions?.length === 0 && <p className="muted">No submissions yet.</p>}
+            <label className="input-label">{t('task.attempts')}</label>
+            {data?.solutions?.length === 0 && <p className="muted">{t('task.noSubmissions')}</p>}
             <div className="stack">
               {data?.solutions?.map((solution) => (
                 <div key={solution.id} className="mini-card glass">
@@ -105,7 +107,7 @@ const TaskDetailPage = () => {
                     <span className="pill">#{solution.id}</span>
                   </div>
                   <pre className="code-snippet">{solution.code.slice(0, 120)}...</pre>
-                  <p className="muted">{solution.is_hidden ? 'Hidden' : 'Visible to teacher'}</p>
+                  <p className="muted">{solution.is_hidden ? t('task.hidden') : t('task.visibleToTeacher')}</p>
                 </div>
               ))}
             </div>

@@ -40,6 +40,15 @@ export const useUserStatus = (enabled: boolean) =>
     },
   })
 
+export const useGroupNames = () =>
+  useQuery<string[]>({
+    queryKey: ['groups'],
+    queryFn: async () => {
+      const { data } = await api.get<string[]>('/api/groups')
+      return data
+    },
+  })
+
 export const useSubjects = (enabled: boolean) =>
   useQuery<Subject[]>({
     queryKey: ['subjects'],

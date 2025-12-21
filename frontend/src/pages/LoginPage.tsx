@@ -1,77 +1,66 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useLogin } from '../api/hooks'
-import Button from '../components/Button'
-import Card from '../components/Card'
-import Input from '../components/Input'
 import { useAuth } from '../context/AuthContext'
+import { useI18n } from '../i18n/I18nContext'
 import { getErrorMessage } from '../utils/error'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const { login: setAuth } = useAuth()
-  const [form, setForm] = useState({ username: '', password: '' })
   const loginMutation = useLogin()
+  const { t } = useI18n()
 
-  const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
-  }
+  const [form, setForm] = useState({ username: '', password: '' })
+  const [error, setError] = useState<string>('')
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
+    setError('')
+
     loginMutation.mutate(form, {
       onSuccess: (data) => {
         setAuth(data.access_token, data.role ?? null)
         navigate('/subjects')
       },
+      onError: (err) => setError(getErrorMessage(err)),
     })
   }
 
   return (
-    <div className="auth-grid">
-      <Card
-        title="Welcome back"
-        subtitle="Glass-blue workspace for labs and submissions"
-        action={<span className="pill">// simple helper text: try student / student</span>}
-      >
-        <form className="form-grid" onSubmit={handleSubmit}>
-          <Input
-            label="Username"
-            placeholder="student"
-            value={form.username}
-            onChange={(e) => handleChange('username', e.target.value)}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={(e) => handleChange('password', e.target.value)}
-            required
-          />
-          <Button type="submit" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? 'Signing in...' : 'Login'}
-          </Button>
-          {loginMutation.isError && (
-            <p className="error-text">{getErrorMessage(loginMutation.error)}</p>
-          )}
-        </form>
-        <p className="muted">
-          No account yet? <Link to="/register">Register</Link>
-        </p>
-      </Card>
-
-      <Card title="SDO highlights" subtitle="Purple-blue glass theme">
-        <ul className="list">
-          <li>Upload & test solutions with instant feedback.</li>
-          <li>Tasks grouped by subjects; clean teacher dashboards.</li>
-          <li>Protected routes, JWT auth, CORS-safe backend.</li>
-          <li>// simple helper text: keep the token safe.</li>
-        </ul>
-      </Card>
-    </div>
+    <section className="auth-section">
+      <h1 className="auth-heading">{t('auth.login.title')}</h1>
+      <form className="auth-form" onSubmit={handleSubmit} method="post">
+        <input
+          type="text"
+          placeholder={t('auth.login.usernamePlaceholder')}
+          onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
+          value={form.username}
+          className="section__login-formInput"
+          name="username"
+          required
+        />
+        <input
+          type="password"
+          placeholder={t('auth.login.passwordPlaceholder')}
+          name="password"
+          value={form.password}
+          onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+          className="section__login-formInput"
+          required
+        />
+        <div className="auth-buttons">
+          <button type="submit" className="auth-button" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? t('auth.login.submitPending') : t('auth.login.submit')}
+          </button>
+          <button type="button" className="auth-button" onClick={() => navigate('/registration')}>
+            {t('auth.login.registrationButton')}
+          </button>
+        </div>
+      </form>
+      {error && <h2 className="auth-error">{error}</h2>}
+    </section>
   )
 }
 

@@ -5,6 +5,7 @@ import { useUserStatus } from './api/hooks'
 import AppShell from './components/AppShell'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
+import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import SubjectTasksPage from './pages/SubjectTasksPage'
@@ -25,9 +26,10 @@ const App = () => {
   return (
     <AppShell>
       <Routes>
-        <Route path="/" element={<Navigate to={token ? '/subjects' : '/login'} />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/registration" element={<RegisterPage />} />
         <Route
           path="/subjects"
           element={
@@ -60,6 +62,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>
   )
