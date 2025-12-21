@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Faculty {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique @db.VarChar(255)
+  Group Group[]
+}
+
+model Group {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique @db.VarChar(32)
+  faculty          Int?
+  Faculty          Faculty?           @relation(fields: [faculty], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Group_Subject    Group_Subject[]
+  TeacherHasGroups TeacherHasGroups[]
+  User             User[]
+}
+
+model Group_Subject {
+  group_id   Int
+  subject_id Int
+  Group      Group   @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Subject    Subject @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([group_id, subject_id])
+}
+
+model Solution {
+  id                Int      @id @default(autoincrement())
+  code              String
+  mark              Int?
+  is_hidden         Boolean? @default(false)
+  lengthTestResult  Boolean?
+  formulaTestResult Boolean?
+  autoTestResult    Int?
+  status            String?  @db.VarChar
+  User_id           Int
+  Task_id           Int?
+  Task              Task?    @relation(fields: [Task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User              User     @relation(fields: [User_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Subject {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique @db.VarChar(64)
+  Group_Subject Group_Subject[]
+  Task          Task[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Task {
+  id              Int        @id @default(autoincrement())
+  name            String     @db.VarChar(128)
+  description     String?    @db.VarChar(2048)
+  teacher_formula String?    @db.VarChar
+  input_variables String?    @db.VarChar
+  status          String?    @db.VarChar
+  Subject_id      Int
+  Solution        Solution[]
+  Subject         Subject    @relation(fields: [Subject_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  TestCase        TestCase[]
+}
+
+model TeacherHasGroups {
+  id         Int    @id @default(autoincrement())
+  teacher_id Int?
+  group_id   Int?
+  Group      Group? @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User       User?  @relation(fields: [teacher_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model TestCase {
+  id      Int    @id @default(autoincrement())
+  inp     String @db.VarChar(512)
+  out     String @db.VarChar(512)
+  Task_id Int?
+  Task    Task?  @relation(fields: [Task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  username         String             @unique @db.VarChar(64)
+  password         String             @db.VarChar(255)
+  roleType         String             @default("student") @db.VarChar(10)
+  studyGroup       Int?
+  form_education   String             @default("Не указано") @db.VarChar(255)
+  first_name       String             @default("Не указано") @db.VarChar(64)
+  last_name        String             @default("Не указано") @db.VarChar(64)
+  middle_name      String?            @default("Не указано") @db.VarChar(64)
+  Solution         Solution[]
+  TeacherHasGroups TeacherHasGroups[]
+  Group            Group?             @relation(fields: [studyGroup], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}

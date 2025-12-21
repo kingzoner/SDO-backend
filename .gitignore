@@ -1,0 +1,26 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+.venv-cli/
+venv/
+
+# Environment files (do not commit secrets)
+.env
+.env.*
+!.env.example
+
+# Node / frontend
+node_modules/
+dist/
+
+# Prisma env (keep example only)
+prisma/.env.prisma
+prisma/.env.prisma.*
+!prisma/.env.prisma.example
+
+# OS/editor
+.DS_Store

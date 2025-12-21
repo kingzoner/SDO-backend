@@ -4,13 +4,13 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from http import HTTPStatus
 
-from app.config.config import init_config
+from app.config.settings import get_settings
 from app.core.jwt_handler import create_access_token
-from app.db.user_methods import add_user, validate_user
+from app.db.user_methods import add_user, validate_user, username_exists
 from app.schemas.auth import LoginRequest, LoginResponse, RegisterRequest, RegisterResponse
 
 router = APIRouter()
-cfg = init_config()['jwt']
+cfg = get_settings().jwt
 
 
 @router.post("/login", response_model=LoginResponse, summary="Авторизация пользователя")
@@ -22,12 +22,12 @@ async def login(request: LoginRequest):
     # if already exists in db
     if not user_data:
         return JSONResponse(
-            status_code=HTTPStatus.BAD_REQUEST,
-            content={"error": "User already exists"}
+            status_code=HTTPStatus.UNAUTHORIZED,
+            content={"error": "Invalid username or password"}
         )
 
     # generate jwt token & more
-    user_token = create_access_token(user_data, timedelta(seconds=cfg['expires_in']))
+    user_token = create_access_token(user_data, timedelta(seconds=cfg.expires_in))
     login_response = LoginResponse(access_token=user_token)
     return JSONResponse(
         status_code=HTTPStatus.OK,
@@ -37,12 +37,7 @@ async def login(request: LoginRequest):
 
 @router.post("/register", response_model=RegisterResponse, summary="Регистрация пользователя")
 async def register(request: RegisterRequest):
-    user_data = validate_user(
-        username=request.username,
-        password=request.password
-    )
-    # if not exists in db
-    if user_data:
+    if username_exists(request.username):
         return JSONResponse(
             status_code=HTTPStatus.BAD_REQUEST,
             content={"error": "User already exists"}
@@ -64,7 +59,7 @@ async def register(request: RegisterRequest):
     }
 
     # generate jwt token & more
-    user_token = create_access_token(jwt_data, timedelta(seconds=cfg['expires_in']))
+    user_token = create_access_token(jwt_data, timedelta(seconds=cfg.expires_in))
     register_response = RegisterResponse(
         access_token=user_token,
         role=res_data.get('roleType', 'unknown'),
