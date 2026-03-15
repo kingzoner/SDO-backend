@@ -28,6 +28,9 @@ class AppSettings(BaseModel):
     port: int = 8000
     cors_origins: List[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
+class CSAppSettings(BaseModel):
+    host: str = "localhost"
+    port: int = 5242
 
 class JWTSettings(BaseModel):
     secret_key: str = "secret_key"
@@ -39,6 +42,7 @@ class Settings(BaseModel):
     database: DatabaseSettings
     app: AppSettings
     jwt: JWTSettings
+    cs_app: CSAppSettings  
 
 
 @lru_cache(maxsize=1)
@@ -63,4 +67,9 @@ def get_settings() -> Settings:
         expires_in=int(os.getenv("SDO_JWT__EXPIRES_IN", "2592000")),
     )
 
-    return Settings(database=database, app=app, jwt=jwt_cfg)
+    cs_app = CSAppSettings(
+        host=os.getenv("CS_APP__HOST", "localhost"),
+        port=int(os.getenv("CS_APP__PORT", "5242")),
+    )
+
+    return Settings(database=database, app=app, jwt=jwt_cfg, cs_app = cs_app)

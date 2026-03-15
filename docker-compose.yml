@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     build:
-      context: .
+      context: ./Python-Monolith/
       dockerfile: Dockerfile
     container_name: app_container
     depends_on:
@@ -25,21 +25,23 @@ services:
     ports:
       - "5050:5432"
     volumes:
-      - ./app/init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
 
-  frontend:
+  csharp-app:
     build:
-      context: ./frontend
+      context: ./CDiazCodeLab
       dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=http://localhost:8000
-    container_name: frontend_container
+    container_name: csharp_app_container
     depends_on:
       - app
+      - db
     ports:
-      - "8081:80"
+      - "5414:5414"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=postgres;Username=root;Password=root
     networks:
       - app-network
 

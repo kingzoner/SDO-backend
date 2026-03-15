@@ -23,6 +23,6 @@ def delete_file(file_path: str) -> bool:
 
 
 def check_type(file: UploadFile) -> (bool, str):
-    if not file.filename.endswith('.py'):
+    if not file.filename.endswith('.py') and not file.filename.endswith('.cs'):
         return False, 'Invalid file type. Only .py files are allowed.'
     return True, ''

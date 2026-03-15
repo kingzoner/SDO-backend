@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment files
+.env
+*.env
+!.env.example
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Backend build artifacts
+*.log
+
+# Not part of backend submission (keeps accidental adds out)
+frontend/
+prisma/
+node_modules/
+dist/
+build/

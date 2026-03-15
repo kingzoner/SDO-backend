@@ -14,5 +14,9 @@
 	  	"secret_key": "secret_key",
 	    "algorithm": "HS256",
 	  	"expires_in": 2592000
+	},
+	"cs_service": {
+    "host": "localhost",
+		"port": 5242
 	}
 }
