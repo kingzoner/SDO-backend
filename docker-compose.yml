@@ -38,7 +38,7 @@ services:
       - app
       - db
     ports:
-      - "5414:5414"
+      - "5242:5242"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=postgres;Username=root;Password=root
