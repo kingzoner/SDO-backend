@@ -1,3 +1,4 @@
+import ast
 from typing import Union
 
 from fastapi import APIRouter, Header, UploadFile, File, Depends
@@ -5,7 +6,7 @@ from fastapi.responses import JSONResponse
 from http import HTTPStatus
 
 from app.core.check_auth import check_auth
-from app.core.files.files import check_type
+from app.core.files.files import check_type, decode_python_source
 from app.db.subject_methods import get_subject_id_by_task
 from app.db.task_methods import add_solution, delete_solution_bd, get_latest_solution, get_task_data, get_user_solutions_by_task, update_solution_hidden
 from app.db.user_methods import is_user_enrolled_in_subject
@@ -25,24 +26,31 @@ async def upload_solution(task_id: int, authorization: str = Header(...), file: 
     check_data = check_auth(authorization)
     if isinstance(check_data, JSONResponse):
         return check_data
-
-    # Проверка типа файла
-    check_file = check_type(file)
-    if not check_file[0]:
+    #Проверка типа файла
+    check_result = check_type(file)
+    if not check_result[0]:
         return JSONResponse(
             status_code=HTTPStatus.BAD_REQUEST,
-            content={"error": check_file[1]}
+            content={"error": check_result[1]}
         )
 
     file_content = await file.read()
 
+    decode_result = decode_python_source(file_content)
+    if not decode_result[0]:
+        return JSONResponse(
+            status_code=HTTPStatus.BAD_REQUEST,
+            content={"error": decode_result[1]}
+        )
+
+    code_text = decode_result[1]
+
     # Добавление решения в БД
     res_add_solution = add_solution(
-        code=file_content.decode('utf-8'),
-        user_id=check_data['user_id'],
+        code=code_text,
+        user_id=check_data["user_id"],
         task_id=task_id,
     )
-
     # Если решение не добавлено
     if isinstance(res_add_solution, str):
         return JSONResponse(
@@ -52,9 +60,7 @@ async def upload_solution(task_id: int, authorization: str = Header(...), file: 
 
     return JSONResponse(
         status_code=HTTPStatus.OK,
-        content=ResponseUpload(
-            task_id=task_id,
-        ).model_dump()
+        content=ResponseUpload(task_id=task_id).model_dump()
     )
 
 
