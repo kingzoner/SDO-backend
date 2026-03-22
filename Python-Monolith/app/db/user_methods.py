@@ -295,6 +295,10 @@ def validate_user(username: str, password: str) -> Union[dict, bool]:
     :param password: The password of the user.
     :return: True if the username and password match, False otherwise.
     """
+    #Валидация, что логин и пароль не пустые
+    if not username or not password or username.strip() == "" or password.strip() == "":
+        return False
+        
     with Session() as session:
         user = session.query(User).filter_by(username=username).first()
         if user and (verify_password(password, user.password) or user.password == password):
