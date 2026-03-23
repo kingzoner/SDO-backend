@@ -15,6 +15,13 @@ cfg = get_settings().jwt
 
 @router.post("/login", response_model=LoginResponse, summary="Авторизация пользователя")
 async def login(request: LoginRequest):
+    #Валидация, что логин и пароль не указаны пустыми
+    if not request.username or not request.password or request.username.strip() == "" or request.password.strip() == "":
+        return JSONResponse(
+            status_code=HTTPStatus.BAD_REQUEST,
+            content={"error": "Username and password are required"}
+        )
+    
     user_data = validate_user(
         username=request.username,
         password=request.password
