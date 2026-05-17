@@ -273,9 +273,20 @@ def is_user_enrolled_in_subject(username: str, subject_id: int) -> bool | str:
     """
     with Session() as session:
         try:
+            try:
+                subject_id = int(subject_id)
+            except (TypeError, ValueError):
+                return "Invalid subject id"
+
             user = session.query(User).filter_by(username=username).first()
             if not user:
                 return "User not found"
+            if not user.group_rel:
+                return "No group found"
+
+            subject = session.query(Subject).filter_by(id=subject_id).first()
+            if not subject:
+                return "Subject not found"
 
             user_subject_list = [subject.id for subject in user.group_rel.subjects]
 
@@ -298,7 +309,7 @@ def validate_user(username: str, password: str) -> Union[dict, bool]:
     #Валидация, что логин и пароль не пустые
     if not username or not password or username.strip() == "" or password.strip() == "":
         return False
-        
+
     with Session() as session:
         user = session.query(User).filter_by(username=username).first()
         if user and (verify_password(password, user.password) or user.password == password):

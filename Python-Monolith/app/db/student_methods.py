@@ -68,7 +68,7 @@ def get_users_by_group(group_id) -> list[UserInfo] | str:
         return users_info
 
 
-def get_student_tasks_with_status(user_id: int) -> list[tuple[int, str, bool]]:
+def get_student_tasks_with_status(user_id: int, subject_id: int | None = None) -> list[tuple[int, str, bool]]:
     """
     Получает все задания студента по его user_id с информацией о выполнении.
 
@@ -81,6 +81,9 @@ def get_student_tasks_with_status(user_id: int) -> list[tuple[int, str, bool]]:
     with Session() as session:
         # Получаем все subject_id, связанные с пользователем
         user_group = session.query(User).filter_by(id=user_id).first()
+        if not user_group or not user_group.group_rel:
+            return []
+
         student_subjects = session.query(GroupSubject.subject_id) \
             .filter(GroupSubject.group_id == user_group.group_rel.id) \
             .all()
@@ -90,6 +93,10 @@ def get_student_tasks_with_status(user_id: int) -> list[tuple[int, str, bool]]:
 
         # Извлекаем только subject_id из результатов запроса
         subject_ids = [subj.subject_id for subj in student_subjects]
+        if subject_id is not None:
+            if subject_id not in subject_ids:
+                return []
+            subject_ids = [subject_id]
 
         # Получаем все задания, связанные с этими subject_id
         tasks = session.query(Task) \

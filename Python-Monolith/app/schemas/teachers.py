@@ -13,7 +13,7 @@ class GroupResponse(BaseModel):
     name: str = ""
 
 
-class LabResponse(BaseModel):
+class StudentLabResponse(BaseModel):
     id: int = 0
     title: str = ""
     status: str = ""

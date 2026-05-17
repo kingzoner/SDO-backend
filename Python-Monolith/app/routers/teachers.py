@@ -13,6 +13,7 @@ from app.schemas.teachers import (
     StudentResponse,
     GroupResponse,
     LabResponse,
+    StudentLabResponse,
     LabDetailResponse, CreateLabRequest, UpdateLabRequest, DetailLab
 )
 from app.schemas.users import FullUserInfo
@@ -93,7 +94,7 @@ async def get_student_lab_detail(student_id: int, lab_id: int):
 
 
 # Получение лабораторных работ студента
-@router.get("/students/{student_id}/subjects/{subject_id}/labs", response_model=list[LabResponse],
+@router.get("/students/{student_id}/subjects/{subject_id}/labs", response_model=list[StudentLabResponse],
             summary="Получение лабораторных работ студента")
 async def get_student_tasks(student_id: int, subject_id: int):
     student_username = get_username_by_id(student_id)
@@ -103,6 +104,11 @@ async def get_student_tasks(student_id: int, subject_id: int):
             HTTPStatus.NOT_FOUND,
             is_enrolled
         )
+    if not is_enrolled:
+        return response_with_error(
+            HTTPStatus.FORBIDDEN,
+            "User is not enrolled in the subject."
+        )
 
     labs = get_student_labs_by_subject(student_id, subject_id)
     if not labs:
@@ -111,7 +117,7 @@ async def get_student_tasks(student_id: int, subject_id: int):
             "Лабораторные работы не найдены"
         )
 
-    serialized_labs = [LabResponse(
+    serialized_labs = [StudentLabResponse(
         id=lab.id,
         title=lab.title,
         status=lab.status,
@@ -147,7 +153,7 @@ async def get_faculty_groups(faculty_id: int):
 # Получение групп преподавателя
 @router.get("/groups", response_model=list[GroupResponse], summary="Получение групп преподавателя")
 async def get_groups(request: Request):
-   
+
     user_id = request.state.user_id
     groups = get_groups_by_user_id(user_id)
 
@@ -191,9 +197,9 @@ async def create_lab(lab: CreateLabRequest):
 
 # Список лабораторных работ
 @router.get("/labs", response_model=list[LabResponse], summary="Получение списка всех лабораторных работ")
-async def get_labs():
-   
-    labs = get_laboratories()
+async def get_labs(subject_id: int | None = None):
+
+    labs = get_laboratories(subject_id)
     response = [lab for lab in labs]
 
     return JSONResponse(
@@ -203,9 +209,9 @@ async def get_labs():
 
 # Список опубликованных лабораторных работ
 @router.get("/labs/status/published", response_model=list[LabResponse], summary="Получение списка опубликованных лабораторных работ")
-async def get_labs_published():
-   
-    labs = get_laboratoy_with_status("published")
+async def get_labs_published(subject_id: int | None = None):
+
+    labs = get_laboratoy_with_status("published", subject_id)
     response = [lab for lab in labs]
 
     return JSONResponse(
@@ -215,9 +221,9 @@ async def get_labs_published():
 
 # Список неопубликованных лабораторных работ
 @router.get("/labs/status/unpublished", response_model=list[LabResponse], summary="Получение списка не опубликованных лабораторных работ")
-async def get_labs_unpublished():
-   
-    labs = get_laboratoy_with_status("unpublished")
+async def get_labs_unpublished(subject_id: int | None = None):
+
+    labs = get_laboratoy_with_status("unpublished", subject_id)
     response = [lab for lab in labs]
 
     return JSONResponse(
@@ -257,7 +263,7 @@ async def toggle_status_lab(lab_id: int):
 # Редактирование лабораторной работы
 @router.put("/labs/{lab_id}", response_model=UpdateLabRequest, summary="Редактирование лабораторной работы")
 async def edit_lab_endpoint(lab_id: int, lab: UpdateLabRequest):
-   
+
     task_to_update = edit_lab(lab_id, lab)
     if not task_to_update:
         return response_with_error(
@@ -288,8 +294,8 @@ async def get_students_info(student_id: int):
 
 # Получение всех лаб студента
 @router.get("/students/{student_id}/labs", response_model=list[LabResponse], summary="Получение всех лаб студента")
-async def get_student_labs(student_id: int):
-    user_labs = get_student_tasks_with_status(student_id)
+async def get_student_labs(student_id: int, subject_id: int | None = None):
+    user_labs = get_student_tasks_with_status(student_id, subject_id)
 
     serialized_labs = [lab for lab in user_labs]
 

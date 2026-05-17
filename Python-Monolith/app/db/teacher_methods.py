@@ -121,10 +121,10 @@ def create_laboratory(task: TaskWithTestCasesSchema):
                         out=test_case.out,
                         Task_id=lab.id
                     )
-                    session.add(test) 
+                    session.add(test)
                 else:
                     raise Exception("Testscases input and output fields must be filled")
-        
+
             session.commit()
             return lab.id
         except Exception as e:
@@ -133,7 +133,7 @@ def create_laboratory(task: TaskWithTestCasesSchema):
             return None
 
 
-def get_laboratories():
+def get_laboratories(subject_id: int | None = None):
     """
     Получает список всех лабораторных работ с базовой информацией.
 
@@ -141,7 +141,10 @@ def get_laboratories():
     """
     with Session() as session:
         try:
-            labs = session.query(Task).all()
+            query = session.query(Task)
+            if subject_id is not None:
+                query = query.filter(Task.Subject_id == subject_id)
+            labs = query.all()
             response = [
                 {
                     "id": lab.id,
@@ -156,7 +159,7 @@ def get_laboratories():
             print(f"Ошибка при получении лабораторных работ: {e}")
             return []
 
-def get_laboratoy_with_status(target_status: str):
+def get_laboratoy_with_status(target_status: str, subject_id: int | None = None):
     """
     Получает список всех лабораторных работ по указанному статусу с базовой информацией.
 
@@ -164,7 +167,10 @@ def get_laboratoy_with_status(target_status: str):
     """
     with Session() as session:
         try:
-            labs = session.query(Task).filter_by(status=target_status).all()
+            query = session.query(Task).filter_by(status=target_status)
+            if subject_id is not None:
+                query = query.filter(Task.Subject_id == subject_id)
+            labs = query.all()
             response = [
                 {
                     "id": lab.id,
@@ -224,7 +230,7 @@ def toggle_laboratory_status(lab_id: int) -> bool:
             print(f"Ошибка при изменении статуса лабораторной: {e}")
             return False
 
-def get_student_tasks_with_status(user_id: int) -> list[tuple[int, str, bool]]:
+def get_student_tasks_with_status(user_id: int, subject_id: int | None = None) -> list[tuple[int, str, bool]]:
     """
     Получает все задания студента по его user_id с информацией о выполнении.
 
@@ -237,6 +243,9 @@ def get_student_tasks_with_status(user_id: int) -> list[tuple[int, str, bool]]:
     with Session() as session:
         # Получаем все subject_id, связанные с пользователем
         user_group = session.query(User).filter_by(id=user_id).first()
+        if not user_group or not user_group.group_rel:
+            return []
+
         student_subjects = session.query(GroupSubject.subject_id) \
             .filter(GroupSubject.group_id == user_group.group_rel.id) \
             .all()
@@ -246,6 +255,10 @@ def get_student_tasks_with_status(user_id: int) -> list[tuple[int, str, bool]]:
 
         # Извлекаем только subject_id из результатов запроса
         subject_ids = [subj.subject_id for subj in student_subjects]
+        if subject_id is not None:
+            if subject_id not in subject_ids:
+                return []
+            subject_ids = [subject_id]
 
         # Получаем все задания, связанные с этими subject_id
         tasks = session.query(Task) \
